@@ -2,10 +2,9 @@ import numpy as np
 import math
 
 
-def divide_sum_in_dict(my_dict):
-    sum_count = sum(my_dict.values())
+def divide_total_review_in_dict(my_dict, total_review):
     for key, value in my_dict.items():
-        my_dict[key] = value / sum_count
+        my_dict[key] = value / total_review
     return my_dict
 
 
@@ -19,7 +18,7 @@ def topK_testing(K, pos_probability, neg_probability, x_test, y_test):
         if each_data[1] == 1:  # pos
             pos_probability_val = 0.0
             neg_probability_val = 0.0
-            for word in each_data[0]:
+            for word in list(set(each_data[0])):
                 if word <= K:
                     pos_probability_val += math.log(
                         pos_probability.get(word, 1.0 / (len(pos_probability) + 1)))
@@ -32,7 +31,7 @@ def topK_testing(K, pos_probability, neg_probability, x_test, y_test):
         if each_data[1] == 0:  # neg
             pos_probability_val = 0.0
             neg_probability_val = 0.0
-            for word in each_data[0]:
+            for word in list(set(each_data[0])):
                 if word <= K:
                     pos_probability_val += math.log(
                         pos_probability.get(word, 1.0 / (len(pos_probability) + 1)))
@@ -69,19 +68,23 @@ y_test = np.load(path + 'y_test.npy')
 pos_dict = {}
 neg_dict = {}
 combined_train = zip(x_train, y_train)
+
+count_pos = 0
+count_neg = 0
+
 for each_data in combined_train:
     if each_data[1] == 1:  # pos
-        for word in each_data[0]:
+        for word in list(set(each_data[0])):
             pos_dict[word] = pos_dict.get(word, 0) + 1
+        count_pos += 1
+
     if each_data[1] == 0:  # neg
-        for word in each_data[0]:
+        for word in list(set(each_data[0])):
             neg_dict[word] = neg_dict.get(word, 0) + 1
-# print(pos_dict)
-# print(neg_dict)
-pos_probability = divide_sum_in_dict(pos_dict)
-neg_probability = divide_sum_in_dict(neg_dict)
-# print(pos_probability)
-# print(neg_probability)
+        count_neg += 1
+
+pos_probability = divide_total_review_in_dict(pos_dict, count_pos)
+neg_probability = divide_total_review_in_dict(neg_dict, count_neg)
 
 print("Top 100: ")
 top_100 = topK_testing(100, pos_probability, neg_probability, x_test, y_test)
